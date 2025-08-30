@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Форма замера столешницы</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f7f9;
+        padding: 20px;
+    }
+    .container {
+        max-width: 800px;
+        margin: auto;
+        background: #fff;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    h1 {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    .form-group {
+        margin-bottom: 20px;
+    }
+    label {
+        font-weight: bold;
+        display: block;
+        margin-bottom: 5px;
+    }
+    input, textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 16px;
+        box-sizing: border-box;
+    }
+    input:focus, textarea:focus {
+        border-color: #007bff;
+        outline: none;
+    }
+    .error {
+        border-color: red !important;
+    }
+    .error-message {
+        color: red;
+        font-size: 14px;
+        margin-top: 5px;
+    }
+    button {
+        width: 100%;
+        padding: 15px;
+        border: none;
+        border-radius: 6px;
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
+        color: #fff;
+    }
+    #copyBtn {
+        background-color: #007bff;
+    }
+    #copyBtn.success {
+        background-color: #28a745;
+    }
+    #clearBtn {
+        margin-top: 10px;
+        background-color: #dc3545;
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h1>📋 Форма замера столешницы</h1>
+
+    <div class="form-group">
+        <label for="agent">Агент *</label>
+        <input type="text" id="agent" required>
+        <div class="error-message" id="error-agent"></div>
+    </div>
+    <div class="form-group">
+        <label for="client">Клиент *</label>
+        <input type="text" id="client" required>
+        <div class="error-message" id="error-client"></div>
+    </div>
+    <div class="form-group">
+        <label for="draftsman">Чертежник</label>
+        <input type="text" id="draftsman">
+    </div>
+    <div class="form-group">
+        <label for="measure_date">Дата *</label>
+        <input type="date" id="measure_date" required>
+        <div class="error-message" id="error-measure_date"></div>
+    </div>
+
+    <hr>
+
+    <div class="form-group">
+        <label for="position_number">Позиция (номер) *</label>
+        <input type="number" id="position_number" required>
+        <div class="error-message" id="error-position_number"></div>
+    </div>
+    <div class="form-group">
+        <label for="position_count">Количество позиций *</label>
+        <input type="number" id="position_count" required>
+        <div class="error-message" id="error-position_count"></div>
+    </div>
+    <div class="form-group">
+        <label for="color">Цвет</label>
+        <input type="text" id="color">
+    </div>
+
+    <hr>
+
+    <div class="form-group">
+        <label for="length">Длина (мм) *</label>
+        <input type="number" id="length" required>
+        <div class="error-message" id="error-length"></div>
+    </div>
+    <div class="form-group">
+        <label for="width">Ширина (мм) *</label>
+        <input type="number" id="width" required>
+        <div class="error-message" id="error-width"></div>
+    </div>
+    <div class="form-group">
+        <label for="thickness">Толщина (мм)</label>
+        <input type="number" id="thickness">
+    </div>
+    <div class="form-group">
+        <label for="wall_panels">Стеновые панели</label>
+        <textarea id="wall_panels"></textarea>
+    </div>
+    <div class="form-group">
+        <label for="tech_holes">Технические отверстия</label>
+        <textarea id="tech_holes"></textarea>
+    </div>
+
+    <button id="copyBtn">Скопировать данные</button>
+    <button type="button" id="clearBtn">🗑 Очистить форму</button>
+</div>
+
+<script>
+    const copyButton = document.getElementById('copyBtn');
+    const clearButton = document.getElementById('clearBtn');
+
+    // Автоподстановка текущей даты
+    document.getElementById('measure_date').valueAsDate = new Date();
+
+    // Восстановление данных из LocalStorage
+    document.querySelectorAll('input, textarea').forEach(field => {
+        field.value = localStorage.getItem(field.id) || '';
+        field.addEventListener('input', () => {
+            localStorage.setItem(field.id, field.value);
+            validateField(field); // живая проверка
+        });
+        field.addEventListener('change', () => validateField(field)); // для даты/чисел
+    });
+
+    function validateField(field) {
+        const errorDiv = document.getElementById('error-' + field.id);
+        if (field.hasAttribute('required') && !field.value.trim()) {
+            field.classList.add('error');
+            if (errorDiv) errorDiv.textContent = 'Это поле обязательно для заполнения';
+            return false;
+        } else {
+            field.classList.remove('error');
+            if (errorDiv) errorDiv.textContent = '';
+            return true;
+        }
+    }
+
+    function validateForm() {
+        let isValid = true;
+        document.querySelectorAll('input[required]').forEach(field => {
+            if (!validateField(field)) isValid = false;
+        });
+        return isValid;
+    }
+
+    copyButton.addEventListener('click', () => {
+        if (!validateForm()) {
+            alert('Исправьте ошибки перед копированием.');
+            return;
+        }
+
+        const reportText = `
+📏 ОТЧЕТ ПО ЗАМЕРУ
+
+🧑‍💼 Агент: ${agent.value}
+👤 Клиент: ${client.value}
+📐 Чертежник: ${draftsman.value || '—'}
+📅 Дата: ${measure_date.value}
+
+📦 Позиция №${position_number.value} из ${position_count.value}
+🎨 Цвет: ${color.value || '—'}
+
+📏 Размеры: ${length.value} × ${width.value} мм
+📏 Толщина: ${thickness.value || '—'} мм
+🪵 Стеновые панели: ${wall_panels.value || 'Нет'}
+🛠 Тех. отверстия: ${tech_holes.value || 'Нет'}
+        `.trim();
+
+        navigator.clipboard.writeText(reportText).then(() => {
+            copyButton.textContent = '✅ Скопировано!';
+            copyButton.classList.add('success');
+            setTimeout(() => {
+                copyButton.textContent = 'Скопировать данные';
+                copyButton.classList.remove('success');
+            }, 2000);
+        });
+    });
+
+    clearButton.addEventListener('click', () => {
+        document.querySelectorAll('input, textarea').forEach(field => {
+            field.value = '';
+            field.classList.remove('error');
+            localStorage.removeItem(field.id);
+            const errorDiv = document.getElementById('error-' + field.id);
+            if (errorDiv) errorDiv.textContent = '';
+        });
+        document.getElementById('measure_date').valueAsDate = new Date();
+        clearButton.textContent = '✅ Очищено!';
+        setTimeout(() => {
+            clearButton.textContent = '🗑 Очистить форму';
+        }, 2000);
+    });
+</script>
+
+</body>
+</html>
+
